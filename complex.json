@@ -1,0 +1,101 @@
+{
+  "name": "Complex JSON Example",
+  "version": 1.0,
+  "isPublic": true,
+  "owner": null,
+  "tags": ["test", "example", "complex"],
+  "metadata": {
+    "created": "2023-05-10T15:30:00Z",
+    "lastModified": "2023-05-11T09:45:30Z"
+  },
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "name": "Alice",
+        "email": "alice@example.com",
+        "age": 28,
+        "isActive": true,
+        "preferences": {
+          "theme": "dark",
+          "notifications": {
+            "email": true,
+            "sms": false,
+            "push": true
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "Bob",
+        "email": "bob@example.com",
+        "age": 35,
+        "isActive": false,
+        "preferences": {
+          "theme": "light",
+          "notifications": {
+            "email": false,
+            "sms": true,
+            "push": false
+          }
+        }
+      }
+    ],
+    "products": [
+      {
+        "id": "P001",
+        "name": "Smartphone",
+        "price": 599.99,
+        "inStock": true,
+        "specs": {
+          "brand": "TechCo",
+          "model": "X100",
+          "storage": ["64GB", "128GB", "256GB"],
+          "colors": ["Black", "White", "Gold"]
+        }
+      },
+      {
+        "id": "P002",
+        "name": "Laptop",
+        "price": 1299.99,
+        "inStock": false,
+        "specs": {
+          "brand": "ComputeCo",
+          "model": "ProBook",
+          "cpu": "Intel i7",
+          "ram": ["8GB", "16GB", "32GB"],
+          "storage": ["512GB SSD", "1TB SSD"]
+        }
+      }
+    ]
+  },
+  "statistics": {
+    "views": 1000000,
+    "likes": 50000,
+    "shares": {
+      "facebook": 10000,
+      "twitter": 15000,
+      "linkedin": 5000
+    }
+  },
+  "settings": {
+    "darkMode": true,
+    "language": "en-US",
+    "notifications": {
+      "email": {
+        "marketing": false,
+        "updates": true,
+        "security": true
+      },
+      "push": {
+        "newMessages": true,
+        "mentions": true
+      }
+    },
+    "privacy": {
+      "showEmail": false,
+      "showAge": true,
+      "allowMessagesFrom": "friends"
+    }
+  }
+}
