@@ -7,22 +7,22 @@ A powerful command-line tool for parsing, querying, and displaying JSON data wit
 
 ## Features
 
-- Parse and pretty-print JSON files with colorized output
-- XPath-like query support for JSON data
-- Support for various comparison operators in queries
-- Easy-to-use command-line interface
-- Efficient handling of large JSON files
+- **Parse and pretty-print** JSON files with colorized output.
+- **XPath-like query support** for JSON data.
+- Support for various **comparison operators** in queries.
+- Easy-to-use **command-line interface**.
+- Efficient handling of **large JSON files**.
 
 ## Installation
 
 1. Ensure you have Go installed (version 1.16 or later).
 2. Clone the repository:
    ```
-   git clone https://github.com/davidhoo/json-parser.git
+   git clone https://github.com/davidhoo/jsonparser.git
    ```
 3. Navigate to the project directory:
    ```
-   cd json-parser
+   cd jsonparser
    ```
 4. Install dependencies:
    ```
@@ -30,7 +30,7 @@ A powerful command-line tool for parsing, querying, and displaying JSON data wit
    ```
 5. Build the project:
    ```
-   go build -o jp cmd/main.go
+   go build -o jp main.go
    ```
 
 ## Usage
