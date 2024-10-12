@@ -4,99 +4,133 @@ import (
 	"fmt"
 	"json-parser/internal/ast"
 	"json-parser/internal/lexer"
+	"strconv"
 )
 
+// Parser represents a JSON parser.
 type Parser struct {
-	l      *lexer.Lexer
-	errors []string
+	l         *lexer.Lexer
+	curToken  lexer.Token
+	peekToken lexer.Token
 }
 
-// NewParser 创建一个新的解析器实例
-func NewParser(input string) *Parser {
-	return &Parser{l: lexer.New(input)} // 使用 New 而不是 NewLexer
+// NewParser creates a new Parser instance.
+func NewParser(l *lexer.Lexer) *Parser {
+	p := &Parser{l: l}
+	p.nextToken()
+	p.nextToken()
+	return p
 }
 
+// nextToken advances the parser to the next token.
+func (p *Parser) nextToken() {
+	p.curToken = p.peekToken
+	p.peekToken = p.l.NextToken()
+}
+
+// Parse parses the input and returns the root AST node.
 func (p *Parser) Parse() (ast.Node, error) {
-	token := p.l.NextToken()
-	switch token.Type {
+	var result ast.Node
+	var err error
+
+	switch p.curToken.Type {
 	case lexer.TokenLeftBrace:
-		return p.parseObject()
+		result, err = p.parseObject()
 	case lexer.TokenLeftBracket:
-		return p.parseArray()
+		result, err = p.parseArray()
 	case lexer.TokenString:
-		return ast.String(token.Value), nil
+		result = ast.String(p.curToken.Value)
 	case lexer.TokenNumber:
-		return ast.Number(parseFloat(token.Value)), nil
+		result, err = p.parseNumber()
 	case lexer.TokenTrue:
-		return ast.Boolean(true), nil
+		result = ast.Boolean(true)
 	case lexer.TokenFalse:
-		return ast.Boolean(false), nil
+		result = ast.Boolean(false)
 	case lexer.TokenNull:
-		return ast.Null{}, nil
+		result = ast.Null{}
+	case lexer.TokenEOF:
+		return nil, newParseError(p.l, fmt.Sprintf("unexpected end of input"))
 	default:
-		return nil, fmt.Errorf("unexpected token: %v", token)
+		return nil, newParseError(p.l, fmt.Sprintf("unexpected token: %v", p.curToken))
 	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	// 检查是否还有多余的标记
+	p.nextToken()
+	if p.curToken.Type != lexer.TokenEOF {
+		return nil, newParseError(p.l, fmt.Sprintf("unexpected token at end of input: %v", p.curToken))
+	}
+
+	return result, nil
 }
 
+// parseObject parses a JSON object.
 func (p *Parser) parseObject() (ast.Object, error) {
 	obj := make(ast.Object)
-	for {
-		keyToken := p.l.NextToken()
-		if keyToken.Type == lexer.TokenRightBrace {
-			break
-		}
-		if keyToken.Type != lexer.TokenString {
-			return nil, fmt.Errorf("expected string key, got %v", keyToken)
-		}
+	p.nextToken() // consume '{'
 
-		colonToken := p.l.NextToken()
-		if colonToken.Type != lexer.TokenColon {
-			return nil, fmt.Errorf("expected colon, got %v", colonToken)
+	for p.curToken.Type != lexer.TokenRightBrace {
+		if p.curToken.Type != lexer.TokenString {
+			return nil, newParseError(p.l, fmt.Sprintf("expected string key, got %v", p.curToken))
 		}
+		key := p.curToken.Value
+		p.nextToken()
+
+		if p.curToken.Type != lexer.TokenColon {
+			return nil, newParseError(p.l, fmt.Sprintf("expected ':', got %v", p.curToken))
+		}
+		p.nextToken()
 
 		value, err := p.Parse()
 		if err != nil {
 			return nil, err
 		}
+		obj[key] = value
 
-		obj[keyToken.Value] = value
-
-		commaToken := p.l.NextToken()
-		if commaToken.Type == lexer.TokenRightBrace {
-			break
-		}
-		if commaToken.Type != lexer.TokenComma {
-			return nil, fmt.Errorf("expected comma or closing brace, got %v", commaToken)
+		p.nextToken()
+		if p.curToken.Type == lexer.TokenComma {
+			p.nextToken()
+		} else if p.curToken.Type != lexer.TokenRightBrace {
+			return nil, newParseError(p.l, fmt.Sprintf("expected ',' or '}', got %v", p.curToken))
 		}
 	}
+
 	return obj, nil
 }
 
+// parseArray parses a JSON array.
 func (p *Parser) parseArray() (ast.Array, error) {
 	arr := make(ast.Array, 0)
-	for {
+	p.nextToken() // consume '['
+
+	for p.curToken.Type != lexer.TokenRightBracket {
 		value, err := p.Parse()
 		if err != nil {
 			return nil, err
 		}
 		arr = append(arr, value)
 
-		commaToken := p.l.NextToken()
-		if commaToken.Type == lexer.TokenRightBracket {
-			break
-		}
-		if commaToken.Type != lexer.TokenComma {
-			return nil, fmt.Errorf("expected comma or closing bracket, got %v", commaToken)
+		p.nextToken()
+		if p.curToken.Type == lexer.TokenComma {
+			p.nextToken()
+		} else if p.curToken.Type != lexer.TokenRightBracket {
+			return nil, newParseError(p.l, fmt.Sprintf("expected ',' or ']', got %v", p.curToken))
 		}
 	}
+
 	return arr, nil
 }
 
-func parseFloat(s string) float64 {
-	// This is a simplified version. You might want to use strconv.ParseFloat in a real implementation.
-	var result float64
-	fmt.Sscanf(s, "%f", &result)
-	return result
+// parseNumber parses a JSON number.
+func (p *Parser) parseNumber() (ast.Number, error) {
+	n, err := strconv.ParseFloat(p.curToken.Value, 64)
+	if err != nil {
+		return ast.Number(0), newParseError(p.l, fmt.Sprintf("invalid number: %s", p.curToken.Value))
+	}
+	return ast.Number(n), nil
 }
 
 // Add more parsing methods as needed...
