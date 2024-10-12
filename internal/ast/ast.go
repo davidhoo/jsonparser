@@ -16,7 +16,7 @@ type String string
 
 // String returns the string representation of the JSON string.
 func (s String) String() string {
-	return string(s)
+	return fmt.Sprintf("%q", string(s)) // 使用 %q 来返回带引号的字符串
 }
 
 // Number represents a JSON number value.

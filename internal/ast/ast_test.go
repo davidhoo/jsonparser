@@ -18,7 +18,7 @@ func TestASTNodes(t *testing.T) {
 		{"Null", Null{}, "null"},
 		{"Object", Object{"key": String("value")}, `{"key":"value"}`},
 		{"Array", Array{Number(1), String("two"), Boolean(true)}, `[1,"two",true]`},
-		{"Empty Object", Object{}, `{"":{}}`},
+		{"Empty Object", Object{}, `{}`},
 		{"Empty Array", Array{}, `[]`},
 		{"Nested Object", Object{"outer": Object{"inner": Number(42)}}, `{"outer":{"inner":42}}`},
 		{"Nested Array", Array{Array{Number(1), Number(2)}, Number(3)}, `[[1,2],3]`},
