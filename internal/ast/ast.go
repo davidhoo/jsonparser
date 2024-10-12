@@ -50,7 +50,7 @@ type Object map[string]Node
 func (o Object) String() string {
 	pairs := make([]string, 0, len(o))
 	for k, v := range o {
-		pairs = append(pairs, fmt.Sprintf("%q:%s", k, v.String()))
+		pairs = append(pairs, fmt.Sprintf("%q:%s", k, v.String())) // 确保键和值都带引号
 	}
 	return "{" + strings.Join(pairs, ",") + "}"
 }
@@ -62,7 +62,7 @@ type Array []Node
 func (a Array) String() string {
 	elements := make([]string, len(a))
 	for i, v := range a {
-		elements[i] = v.String()
+		elements[i] = v.String() // 确保数组元素的字符串表示正确
 	}
 	return "[" + strings.Join(elements, ",") + "]"
 }

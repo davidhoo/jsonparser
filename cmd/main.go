@@ -14,74 +14,85 @@ import (
 )
 
 func main() {
-	// 添加新的命令行标志
-	queryFlag := flag.String("q", "", "XPath-like query string to filter JSON")
-	fileFlag := flag.String("f", "", "JSON file path")
-	helpFlag := flag.Bool("h", false, "Show help message")
+	queryFlag, fileFlag, helpFlag := parseFlags()
 
-	// 自定义 usage 信息
-	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "%s\n\n", color.CyanString("JSON Parser with XPath-like Query Support"))
-		fmt.Fprintf(os.Stderr, "%s\n", color.YellowString("Usage:"))
-		fmt.Fprintf(os.Stderr, "  %s %s\n", os.Args[0], color.GreenString("[-f <json_file>] [-q <query>]"))
-		fmt.Fprintf(os.Stderr, "  %s %s\n\n", os.Args[0], color.GreenString("<json_file> [-q <query>]"))
-
-		fmt.Fprintf(os.Stderr, "%s\n", color.YellowString("Options:"))
-		fmt.Fprintf(os.Stderr, "  %s\t%s\n", color.GreenString("-f <json_file>"), "Specify the JSON file path")
-		fmt.Fprintf(os.Stderr, "  %s\t%s\n", color.GreenString("-q <query>"), "XPath-like query string to filter JSON")
-		fmt.Fprintf(os.Stderr, "  %s\t\t%s\n\n", color.GreenString("-h"), "Show this help message")
-
-		fmt.Fprintf(os.Stderr, "%s\n", color.YellowString("Query Examples:"))
-		fmt.Fprintf(os.Stderr, "  %s : Get the first user\n", color.GreenString("-q \"/data/users[0]\""))
-		fmt.Fprintf(os.Stderr, "  %s : Find user with name 'Alice'\n", color.GreenString("-q \"/data/users[@name='Alice']\""))
-		fmt.Fprintf(os.Stderr, "  %s : Find products with price over 1000\n", color.GreenString("-q \"/data/products[price>1000]\""))
-		fmt.Fprintf(os.Stderr, "  %s : Get all notification settings\n", color.GreenString("-q \"/settings/notifications/*\""))
-	}
-
-	flag.Parse()
-
-	// 如果没有提供任何参数或使用了 -h 标志，显示使用说明并退出
 	if len(os.Args) == 1 || *helpFlag {
-		flag.Usage()
+		printUsage()
 		os.Exit(0)
 	}
 
-	var filePath string
-	if *fileFlag != "" {
-		filePath = *fileFlag
-	} else if flag.NArg() > 0 {
-		filePath = flag.Arg(0)
-	} else {
-		fmt.Println("Error: Please provide a JSON file path using -f flag or as an argument")
-		flag.Usage()
-		os.Exit(1)
+	filePath := getFilePath(fileFlag)
+
+	data, err := readFile(filePath)
+	if err != nil {
+		handleError(fmt.Errorf("error reading file: %v", err))
 	}
 
-	data, err := ioutil.ReadFile(filePath)
+	jsonData, err := unmarshalJSON(data)
 	if err != nil {
-		fmt.Printf("Error reading file: %v\n", err)
-		os.Exit(1)
-	}
-
-	var jsonData interface{}
-	err = json.Unmarshal(data, &jsonData)
-	if err != nil {
-		fmt.Printf("Error parsing JSON: %v\n", err)
-		os.Exit(1)
+		handleError(fmt.Errorf("error parsing JSON: %v", err))
 	}
 
 	if *queryFlag != "" {
-		// 如果提供了查询，执行查询
 		result, err := queryJSON(jsonData, *queryFlag)
 		if err != nil {
-			fmt.Printf("Error executing query: %v\n", err)
-			os.Exit(1)
+			handleError(fmt.Errorf("error executing query: %v", err))
 		}
 		printJSON(result)
 	} else {
-		// 否则打印整个 JSON
 		printJSON(jsonData)
 	}
+}
+
+func parseFlags() (*string, *string, *bool) {
+	queryFlag := flag.String("q", "", "XPath-like query string to filter JSON")
+	fileFlag := flag.String("f", "", "JSON file path")
+	helpFlag := flag.Bool("h", false, "Show help message")
+	flag.Parse()
+	return queryFlag, fileFlag, helpFlag
+}
+
+func getFilePath(fileFlag *string) string {
+	if *fileFlag != "" {
+		return *fileFlag
+	} else if flag.NArg() > 0 {
+		return flag.Arg(0)
+	}
+	handleError(fmt.Errorf("please provide a JSON file path using -f flag or as an argument"))
+	return ""
+}
+
+func readFile(filePath string) ([]byte, error) {
+	return ioutil.ReadFile(filePath)
+}
+
+func unmarshalJSON(data []byte) (interface{}, error) {
+	var jsonData interface{}
+	err := json.Unmarshal(data, &jsonData)
+	return jsonData, err
+}
+
+func handleError(err error) {
+	fmt.Println(err)
+	os.Exit(1)
+}
+
+func printUsage() {
+	fmt.Fprintf(os.Stderr, "%s\n\n", color.CyanString("JSON Parser with XPath-like Query Support"))
+	fmt.Fprintf(os.Stderr, "%s\n", color.YellowString("Usage:"))
+	fmt.Fprintf(os.Stderr, "  %s %s\n", os.Args[0], color.GreenString("[-f <json_file>] [-q <query>]"))
+	fmt.Fprintf(os.Stderr, "  %s %s\n\n", os.Args[0], color.GreenString("<json_file> [-q <query>]"))
+
+	fmt.Fprintf(os.Stderr, "%s\n", color.YellowString("Options:"))
+	fmt.Fprintf(os.Stderr, "  %s\t%s\n", color.GreenString("-f <json_file>"), "Specify the JSON file path")
+	fmt.Fprintf(os.Stderr, "  %s\t%s\n", color.GreenString("-q <query>"), "XPath-like query string to filter JSON")
+	fmt.Fprintf(os.Stderr, "  %s\t\t%s\n\n", color.GreenString("-h"), "Show this help message")
+
+	fmt.Fprintf(os.Stderr, "%s\n", color.YellowString("Query Examples:"))
+	fmt.Fprintf(os.Stderr, "  %s : Get the first user\n", color.GreenString("-q \"/data/users[0]\""))
+	fmt.Fprintf(os.Stderr, "  %s : Find user with name 'Alice'\n", color.GreenString("-q \"/data/users[@name='Alice']\""))
+	fmt.Fprintf(os.Stderr, "  %s : Find products with price over 1000\n", color.GreenString("-q \"/data/products[price>1000]\""))
+	fmt.Fprintf(os.Stderr, "  %s : Get all notification settings\n", color.GreenString("-q \"/settings/notifications/*\""))
 }
 
 func queryJSON(data interface{}, query string) (interface{}, error) {
@@ -287,12 +298,16 @@ func compareValues(a, b interface{}) int {
 func printJSON(data interface{}) {
 	jsonBytes, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
-		fmt.Printf("Error formatting JSON: %v\n", err)
-		return
+		handleError(fmt.Errorf("error formatting JSON: %v", err))
 	}
 
-	coloredJSON := colorizeJSON(string(jsonBytes))
-	fmt.Println(coloredJSON)
+	// 确保输出的 JSON 字符串包含双引号
+	if str, ok := data.(string); ok {
+		fmt.Printf("\"%s\"\n", str)
+	} else {
+		coloredJSON := colorizeJSON(string(jsonBytes))
+		fmt.Println(coloredJSON)
+	}
 }
 
 func colorizeJSON(jsonStr string) string {
