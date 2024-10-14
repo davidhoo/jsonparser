@@ -15,81 +15,96 @@ A powerful command-line tool for parsing, querying, and displaying JSON data wit
 
 ## Installation
 
+### From Source
+
 1. Ensure you have Go installed (version 1.16 or later).
 2. Clone the repository:
-   ```
+   ```bash
    git clone https://github.com/davidhoo/jsonparser.git
    ```
 3. Navigate to the project directory:
-   ```
+   ```bash
    cd jsonparser
    ```
 4. Install dependencies:
-   ```
+   ```bash
    go mod tidy
    ```
 5. Build the project:
-   ```
+   ```bash
    go build -o jp main.go
+   ```
+
+### Homebrew Installation (Experimental)
+
+You can also install this tool using Homebrew by tapping the repository. This method is experimental and does not require submission to the Homebrew core repository.
+
+1. Tap the repository:
+   ```bash
+   brew tap davidhoo/jsonparser
+   ```
+2. Install the tool:
+   ```bash
+   brew install jsonparser
    ```
 
 ## Usage
 
 Basic syntax:
 
-```
+```bash
 ./jp [-f <json_file>] [-q <query>]
 ```
 
 or
 
-```
+```bash
 ./jp <json_file> [-q <query>]
 ```
 
 ### Options
 
-- `-f <json_file>`: Specify the JSON file path
-- `-q <query>`: XPath-like query string to filter JSON
-- `-h`: Show help message
+- `-f <json_file>`: Specify the JSON file path.
+- `-q <query>`: XPath-like query string to filter JSON.
+- `-h`: Show help message.
 
 If no query is provided, the entire JSON will be printed with colorized output.
 
 ## Query Syntax
 
-- Use `/` to separate path elements
-- Use `@` to access object properties
-- Use `[]` for array indexing or filtering
-- Use `*` as a wildcard to select all elements
+- Use `/` to separate path elements.
+- Use `@` to access object properties.
+- Use `[]` for array indexing or filtering.
+- Use `*` as a wildcard to select all elements.
 
 ### Supported Operators
 
-- Equality: `=`
-- Inequality: `!=`
-- Greater than: `>`
-- Greater than or equal to: `>=`
-- Less than: `<`
-- Less than or equal to: `<=`
+- **Equality**: `=`
+- **Inequality**: `!=`
+- **Greater than**: `>`
+- **Greater than or equal to**: `>=`
+- **Less than**: `<`
+- **Less than or equal to**: `<=`
 
 ## Query Examples
 
 1. Get the first user:
-   ```
+   ```bash
    ./jp -f complex.json -q "/data/users[0]"
    ```
 
 2. Find user with name 'Alice':
-   ```
+   ```bash
    ./jp -f complex.json -q "/data/users[@name='Alice']"
    ```
 
 3. Find products with price over 1000:
-   ```
+   ```bash
    ./jp -f complex.json -q "/data/products[price>1000]"
    ```
 
 4. Get all notification settings:
-   ```
+   ```bash
    ./jp -f complex.json -q "/settings/notifications/*"
    ```
 
@@ -97,21 +112,22 @@ If no query is provided, the entire JSON will be printed with colorized output.
 
 The tool uses the following color scheme for JSON elements:
 
-- Keys: Cyan
-- String values: Green
-- Number values: Yellow
-- Boolean values: Blue
-- Null values: Red
-- Brackets and braces: Magenta
-- Colons and commas: White
+- **Keys**: Cyan
+- **String values**: Green
+- **Number values**: Yellow
+- **Boolean values**: Blue
+- **Null values**: Red
+- **Brackets and braces**: Magenta
+- **Colons and commas**: White
 
 ## Error Handling
 
 The tool provides informative error messages for:
-- File reading errors
-- JSON parsing errors
-- Query execution errors
-- Invalid query syntax
+
+- File reading errors.
+- JSON parsing errors.
+- Query execution errors.
+- Invalid query syntax.
 
 ## Performance
 
